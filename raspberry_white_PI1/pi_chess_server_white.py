@@ -33,6 +33,8 @@ YIFAN_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'yifan.nnue')
 SPASSKY_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'spassky.nnue')
 NAKAMURA_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'nakamura.nnue')
 KRUSH_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'krush.nnue')
+POLGAR_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'polgar.nnue')
+ANAND_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'anand.nnue')
 
 # Create Class objects
 # display_lcd = LCD()
@@ -129,12 +131,31 @@ def get_engine_move(game_speed=10):
         # Use a timeout limit to prevent hanging (max 30 seconds total)
         time_limit = min(thinking_time * 2, 30.0)
 
-        # Thinking LED/LCD
+        # # Thinking LED/LCD
+        # with open("LED_mode.txt", 'w') as f:
+        #     f.write("thinking")
         # display_LED.thinking()
         # display_lcd.show_screen("score", 10)
         
-        result = engine.play(board, chess.engine.Limit(time=thinking_time))
+        result = engine.play(board, chess.engine.Limit(time=thinking_time), info=chess.engine.Info.ALL)
         move = result.move
+        info = result.info
+
+        # Initialize wdl_stats to None
+        # wdl_stats = None        
+
+        # Extract the WDL Probabilites
+        if 'wdl' in info:
+            wdl = info['wdl'].white()
+            # FIX: changed 'wdl.win' to 'wdl.wins'
+            total = wdl.wins + wdl.draws + wdl.losses
+            
+            if total > 0:
+                wdl_stats = {
+                    'win': round((wdl.wins / total) * 100, 1), # FIX: wdl.wins
+                    'draw': round((wdl.draws / total) * 100, 1),
+                    'loss': round((wdl.losses / total) * 100, 1)
+                }
         
         print(f"Engine suggested move: {move}")
         
@@ -158,7 +179,8 @@ def get_engine_move(game_speed=10):
             'from': chess.square_name(move.from_square),
             'to': chess.square_name(move.to_square),
             'piece': piece,
-            'san': san_notation
+            'san': san_notation,
+            'wdl': wdl_stats
         }
     except chess.engine.EngineTerminatedError as e:
         print(f"ERROR: Engine terminated unexpectedly: {e}")
@@ -249,14 +271,22 @@ def handle_move():
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
+                    # with open("LED_mode.txt", 'w') as f:
+                    #     f.write("win")
+                    # time.sleep(5)
                     # display_LED.game_win()
                     # display_LCD.show_victory()
                 elif result == '0-1':
-                    winner = 'black'
+                    winner = 'black' 
+                    # with open("LED_mode.txt", 'w') as f:
+                    #     f.write("lose")
+                    # time.sleep(5)
                     # display_LED.game_lose()
                     # display_LCD.show_lose()
                 else:
                     winner = 'draw'
+                    # with open("LED_mode.txt", 'w') as f:
+                    #     f.write("draw")
                     # display_LED.game_draw()
                     # display_LCD.show_draw()
             
@@ -305,14 +335,22 @@ def handle_engine_move():
             result = board.result()
             if result == '1-0':
                 winner = 'white'
+                # with open("LED_mode.txt", 'w') as f:
+                #     f.write("win")
+                # time.sleep(5)
                 # display_LED.game_win()
                 # display_LCD.show_screen("victory")
             elif result == '0-1':
                 winner = 'black'
+                # with open("LED_mode.txt", 'w') as f:
+                #     f.write("lose")
+                # time.sleep(5)
                 # display_LED.game_lose()
                 # display_LCD.show_screen("lose")
             else:
                 winner = 'draw'
+                # with open("LED_mode.txt", 'w') as f:
+                #     f.write("draw")
                 # display_LED.game_draw()
                 # display_LCD.show_screen("draw")
 
@@ -346,8 +384,14 @@ def handle_engine_move():
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
+                    # with open("LED_mode.txt", 'w') as f:
+                    #     f.write("win")
+#                        time.sleep(5) 
                 elif result == '0-1':
                     winner = 'black'
+                    # with open("LED_mode.txt", 'w') as f:
+                    #     f.write("lose")
+                    #     time.sleep(5)
                 else:
                     winner = 'draw'
             
@@ -401,8 +445,16 @@ def get_board_state_endpoint():
             result = board.result()
             if result == '1-0':
                 winner = 'white'
+                # with open("LED_mode.txt", 'w') as f:
+                #     f.write("win")
+                # time.sleep(5)
+           
             elif result == '0-1':
                 winner = 'black'
+                # with open("LED_mode.txt", 'w') as f:
+                #     f.write("lose")
+                # time.sleep(5)
+           
             else:
                 winner = 'draw'
         
@@ -480,7 +532,7 @@ def set_bot_difficulty():
         elo = data.get('elo', 1350)
         skill = data.get('skill', 10)
         use_nnue = data.get('use_nnue', False)
-        nnue_model = data.get('nnue_model', 'carlsen')  # 'carlsen' or 'fischer'
+        nnue_model = data.get('nnue_model', 'carlsen')  
         
         # Ensure ELO is within Stockfish's supported range (1350-2850)
         elo = max(1350, min(2850, elo))
@@ -490,7 +542,8 @@ def set_bot_difficulty():
         config = {
             "Skill Level": skill,
             "UCI_LimitStrength": True,
-            "UCI_Elo": elo
+            "UCI_Elo": elo,
+            "UCI_ShowWDL": True
         }
         
         # If NNUE is requested, configure the evaluation file
@@ -506,6 +559,10 @@ def set_bot_difficulty():
                 nnue_path = NAKAMURA_NNUE_PATH
             elif nnue_model == 'krush':
                 nnue_path = KRUSH_NNUE_PATH
+            elif nnue_model == 'polgar':
+                nnue_path = POLGAR_NNUE_PATH
+            elif nnue_model == 'anand':
+                nnue_path = ANAND_NNUE_PATH
             else:  # default to carlsen
                 nnue_path = CARLSEN_NNUE_PATH
             
