@@ -13,6 +13,7 @@ from flask import Flask, request, jsonify
 import json
 import time
 import os
+from hardware_controller import ChessHardware
 # from LED_Program import RingLed
 # from lcd_animation import LCD
 
@@ -39,6 +40,7 @@ ANAND_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'anand.nnue')
 # Create Class objects
 # display_lcd = LCD()
 # display_LED = RingLed()
+hardware = ChessHardware()
 
 def initialize_engine():
     """Initialize the Stockfish chess engine"""
@@ -113,6 +115,9 @@ def get_engine_move(game_speed=10):
         return None
     
     try:
+        # Start thinking animaiton on LED and lcd screen
+        hardware.start_animation("thinking")
+        
         # print(f"Getting engine move. Board FEN: {board.fen()}")
         legal_moves_list = list(board.legal_moves)
         # print(f"Legal moves count: {len(legal_moves_list)}")
@@ -168,9 +173,21 @@ def get_engine_move(game_speed=10):
         # Get piece and SAN before pushing
         piece = board.piece_at(move.from_square).symbol() if board.piece_at(move.from_square) else None
         san_notation = board.san(move)
+
+        # Stop the animation after a Move is made
+        # hardware.stop_all()
         
         # Make the move
-        board.push(move)
+        board.push(move)        
+
+        if board.is_game_over():
+            if board.is_checkmate():
+                print("Checkmate detected! Starting victory animation.")
+                hardware.start_animation("win")
+            else:
+                print("Draw detected.")
+                hardware.start_animation("draw")
+        
         global current_player
         current_player = 'black' if current_player == 'white' else 'white'
         print(f"Engine move applied: {move} ({san_notation})")
@@ -271,13 +288,12 @@ def handle_move():
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
-                    # with open("LED_mode.txt", 'w') as f:
-                    #     f.write("win")
-                    # time.sleep(5)
-                    # display_LED.game_win()
-                    # display_LCD.show_victory()
+                    # hardware.start_animation("win")
+                    # else:
+                    #     hardware.start_animation("lose")
                 elif result == '0-1':
-                    winner = 'black' 
+                    winner = 'black'
+                    # hardware.start_animation("lose")
                     # with open("LED_mode.txt", 'w') as f:
                     #     f.write("lose")
                     # time.sleep(5)
@@ -285,6 +301,7 @@ def handle_move():
                     # display_LCD.show_lose()
                 else:
                     winner = 'draw'
+                    # hardware.start_animation("draw")
                     # with open("LED_mode.txt", 'w') as f:
                     #     f.write("draw")
                     # display_LED.game_draw()
@@ -335,6 +352,7 @@ def handle_engine_move():
             result = board.result()
             if result == '1-0':
                 winner = 'white'
+                # hardware.start_animation("win")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("win")
                 # time.sleep(5)
@@ -342,6 +360,7 @@ def handle_engine_move():
                 # display_LCD.show_screen("victory")
             elif result == '0-1':
                 winner = 'black'
+                # hardware.start_animation("lose")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("lose")
                 # time.sleep(5)
@@ -349,6 +368,7 @@ def handle_engine_move():
                 # display_LCD.show_screen("lose")
             else:
                 winner = 'draw'
+                # hardware.start_animation("draw")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("draw")
                 # display_LED.game_draw()
@@ -384,11 +404,13 @@ def handle_engine_move():
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
+                    hardware.start_animation("win")
                     # with open("LED_mode.txt", 'w') as f:
                     #     f.write("win")
 #                        time.sleep(5) 
                 elif result == '0-1':
                     winner = 'black'
+                    hardware.start_animation("lose")
                     # with open("LED_mode.txt", 'w') as f:
                     #     f.write("lose")
                     #     time.sleep(5)
@@ -606,6 +628,33 @@ def cleanup():
         engine.quit()
         print("Chess engine closed")
 
+# @app.route('/update_board', methods=['POST'])
+# def update_board():
+#     global board
+#     data = request.get_json()
+#     fen = data.get('fen')
+
+#     if fen:
+#         board.set_fen(fen)
+        
+#         if board.is_game_over():
+#             # ONLY start if we aren't already animating
+#             # This prevents the glitching you saw
+#             if not hardware.is_animating():
+#                 res = board.result()
+#                 if res == "1-0":
+#                     hardware.start_animation("win")
+#                 elif res == "0-1":
+#                     hardware.start_animation("lose")
+#                 else:
+#                     hardware.start_animation("draw")
+#             return jsonify({'status': 'success', 'message': 'Game Over'})
+
+#         # Default state
+#         hardware.start_animation("thinking")
+        
+#     return jsonify({'status': 'success'})
+    
 if __name__ == '__main__':
     print("="*60)
     print("Starting Raspberry Pi Chess Server (Simplified)")

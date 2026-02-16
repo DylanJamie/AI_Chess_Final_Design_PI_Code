@@ -21,7 +21,7 @@ num_pixels = 16
 ORDER = neopixel.GRBW
 
 class RingLed:
-    def __init__(self, pixel_pin = board.D18, num_pixels = 16, ORDER = neopixel.GRBW):
+    def __init__(self, pixel_pin, num_pixels, ORDER):
         self.pixel_pin = pixel_pin
         self.num_pixels = num_pixels
         self.ORDER = ORDER
@@ -117,60 +117,26 @@ class RingLed:
         self.pixels.brightness = original_brightness  # RESTORE
 
     def game_win(self):
-        self._spin(duration = 0.5, trail_length = 12)
-        self._flash(duration = 0.5)
+        self._spin(duration = 2, trail_length = 12)
+        self._flash(duration = 2)
         return()
 
     def game_lose(self):
-        self._flash(color = RED, delay = 0.003, min_brightness = 40, duration = 10)
+        self._flash(color = RED, delay = 0.003, min_brightness = 40)
         return()
     def game_draw(self):
-        self._flash(color = GREY, delay = 0.003, min_brightness = 40, duration = 10)
+        self._flash(color = GREY, delay = 0.003, min_brightness = 40)
         return()
 
     def under_attack(self):
-        self._spin(color = ORANGE, trail_length = 23, duration = 10)
+        self._spin(color = ORANGE, trail_length = 23)
         return()
-    def thinking(self, dur):
-        self._breath(duration = 10, delay = 0.001, min_brightness = 40)
+    def thinking(self):
+        self._breath(duration = 1, delay = 0.001, min_brightness = 40)
         return()
-
-
-    # Function to read text file, then based on input, run one of the following function
-    def run_from_file(self, filename):
-        while True:
-            try:
-                with open(filename, "r") as f:
-                    mode = f.read().strip()
-            except OSError:
-                time.sleep(0.05)
-                continue
-            
-            if mode == "win":
-                self.game_win()
-
-            elif mode == "lose":
-                self.game_lose()
-                
-            elif mode == "draw":
-                self.game_draw()
-                
-            elif mode == "attack":
-                self.under_attack()
-                
-            elif mode == "thinking":
-                self.thinking(0.1)
-
-            else:
-                self.game_draw()
-            time.sleep(0.02)
-            
-
-    
-def main():
-    player = RingLed(pixel_pin, num_pixels, ORDER)
-    player.run_from_file("LED_mode.txt")
-
 
 if __name__ == "__main__":
-    main()
+    # Move any test code here
+    # led = RingLed(...)
+    # led.thinking()
+    pass
