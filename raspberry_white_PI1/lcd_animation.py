@@ -4,12 +4,18 @@ import board
 import random
 import busio
 from PIL import Image, ImageDraw, ImageFont
+import socket
 from adafruit_rgb_display import gc9a01a
+
+
+# Have code run in an infinite loop that checks for the states of the LCD
 
 BORDER = 20
 FONTSIZE = 24
 BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-BoldOblique.ttf"
 BAUDRATE = 24000000
+HOST = "127.0.0.1"
+PORT = 1234
 
 class LCD:
     def __init__(self):
@@ -198,14 +204,33 @@ class LCD:
                 self.turn_off()
 
             case _:
-                raise ValueError(f"Unknown screen type: {screen_type}")
+                self.show_draw()
 
 
-if __name__ == "__main__":
-    myLCD = LCD()
-    myLCD.turn_off()
-    while True:
-        myLCD.show_screen("selection")
-        time.sleep(2)
-        myLCD.show_screen("victory")
-        time.sleep(2)
+## Header ##
+myLCD = LCD()  # create LCD object 
+## init socket that recieves 
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind((HOST, PORT))
+s.listen(1)
+# recieve input from socket as screentype   
+conn, addr = s.accept()
+buffer = ""
+while True:
+    data = conn.recv(1024)
+    if not data:
+        break
+    screen_type = data.decode().strip()
+
+    buffer += data.decode()
+
+    while "\n" in buffer:
+        screen_type, buffer = buffer.split("\n", 1)
+        screen_type = screen_type.strip()
+        myLCD.show_screen(screen_type)
+
+    #myLCD.show_screen(screen_type) ## Send what was recieved from socket to LCD code to update screen
+
+
+conn.close()
+s.close()
