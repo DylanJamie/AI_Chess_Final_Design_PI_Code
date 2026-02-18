@@ -208,29 +208,35 @@ class LCD:
 
 
 ## Header ##
-myLCD = LCD()  # create LCD object 
+myLCD = LCD()  # create LCD object
+myLCD.turn_off()
 ## init socket that recieves 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen(1)
+
 # recieve input from socket as screentype   
 conn, addr = s.accept()
-buffer = ""
+screen_type = None
+conn.settimeout(0.1)
+
+### Poll for new screentype
+### if screen type is new, send to LCD, else, send keep running current LCD
+
 while True:
-    data = conn.recv(1024)
-    if not data:
-        break
-    screen_type = data.decode().strip()
 
-    buffer += data.decode()
+    try:
+        data = conn.recv(1024)
+        screen_type = data.decode().strip()
 
-    while "\n" in buffer:
-        screen_type, buffer = buffer.split("\n", 1)
-        screen_type = screen_type.strip()
-        myLCD.show_screen(screen_type)
-
-    #myLCD.show_screen(screen_type) ## Send what was recieved from socket to LCD code to update screen
-
-
+        print("screen type: ", screen_type)    
+        
+    except socket.timeout:
+        pass
+    
+    if screen_type is not "":
+        myLCD.show_screen(screen_type) ## Send what was recieved from socket to LCD code to update screen
+    
 conn.close()
 s.close()
+print("code is done")
