@@ -227,15 +227,19 @@ while True:
 
     try:
         data = conn.recv(1024)
-        screen_type = data.decode().strip()
+        data_dec = data.decode().strip()
 
-        print("screen type: ", screen_type)    
+        if data_dec != "":
+            screen_type = data_dec
+            
+        
+        print("screen type: ", type(screen_type))    
         
     except socket.timeout:
         pass
     
-    if screen_type is not "":
-        myLCD.show_screen(screen_type) ## Send what was recieved from socket to LCD code to update screen
+
+    myLCD.show_screen(screen_type) ## Send what was recieved from socket to LCD code to update screen
     
 conn.close()
 s.close()
