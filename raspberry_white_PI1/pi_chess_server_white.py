@@ -307,16 +307,21 @@ def handle_move():
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
-                    # hardware.start_animation("win")
-                    # else:
-                    #     hardware.start_animation("lose")
-                    s1.sendall(b"victory\n")
-                    s2.sendall(b"win\n")
-                    
+                    if current_player == 'white':
+                        s1.sendall(b"victory\n")
+                        s2.sendall(b"win\n")
+                    else:
+                        s1.sendall(b"lose\n")
+                        s2.sendall(b"lose\n")
+                        
                 elif result == '0-1':
                     winner = 'black'
-                    s1.sendall(b"lose\n")
-                    s2.sendall(b"lose\n")
+                    if current_player == 'black':
+                        s1.sendall(b"victory\n")
+                        s2.sendall(b"win\n")
+                    else:
+                        s1.sendall(b"lose\n")
+                        s2.sendall(b"lose\n")
                     
                     # hardware.start_animation("lose")
                     # with open("LED_mode.txt", 'w') as f:
