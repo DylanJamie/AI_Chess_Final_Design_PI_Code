@@ -9,7 +9,7 @@ from adafruit_rgb_display import gc9a01a
 
 
 # Have code run in an infinite loop that checks for the states of the LCD
-
+##
 BORDER = 20
 FONTSIZE = 24
 BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-BoldOblique.ttf"
