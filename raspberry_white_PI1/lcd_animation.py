@@ -219,7 +219,7 @@ s.listen(1)
 conn, addr = s.accept()
 screen_type = None
 conn.settimeout(0.1)
-
+buffer = ""
 ### Poll for new screentype
 ### if screen type is new, send to LCD, else, send keep running current LCD
 
@@ -229,15 +229,29 @@ while True:
         data = conn.recv(1024)
         data_dec = data.decode().strip()
 
-        if data_dec != "":
-            screen_type = data_dec
-            
+        buffer += data.decode()
+
+        while "\n" in buffer:
+            msg, buffer = buffer.split("\n", 1)
+            msg = msg.strip()
+
+            if msg:
+                screen_type = msg
+                print("Game Mode:", screen_type)
+        
+ #        if data_dec != "":
+#             screen_type = data_dec
+# 
     except socket.timeout:
         pass
     
-    print("Game Mode: ", screen_type)
-    myLCD.show_screen(screen_type) ## Send what was recieved from socket to LCD code to update screen
-    
+    #print("Game Mode: ", screen_type)
+    if screen_type:
+        myLCD.show_screen(screen_type) ## Send what was recieved from socket to LCD code to update screen
+
+
+
+    #time.sleep(0.1)
 conn.close()
 s.close()
 print("code is done")

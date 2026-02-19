@@ -125,7 +125,7 @@ def get_engine_move(game_speed=10):
     try:
         # Start thinking animaiton on LED and lcd screen
         #hardware.start_animation("thinking")        
-        s.sendall(b"score")
+        s.sendall(b"score\n")
         # print(f"Getting engine move. Board FEN: {board.fen()}")
         legal_moves_list = list(board.legal_moves)
         # print(f"Legal moves count: {len(legal_moves_list)}")
@@ -192,7 +192,7 @@ def get_engine_move(game_speed=10):
             if board.is_checkmate():
                 print("Checkmate detected! Starting victory animation.")
                 #hardware.start_animation("win")
-                #s.sendall(b"victory")
+                s.sendall(b"victory\n")
                 
             else:
                 print("Draw detected.")
@@ -302,11 +302,11 @@ def handle_move():
                     # hardware.start_animation("win")
                     # else:
                     #     hardware.start_animation("lose")
-                    s.sendall(b"victory")
+                    s.sendall(b"victory\n")
                     
                 elif result == '0-1':
                     winner = 'black'
-                    s.sendall(b"lose")
+                    s.sendall(b"lose\n")
                     # hardware.start_animation("lose")
                     # with open("LED_mode.txt", 'w') as f:
                     #     f.write("lose")
@@ -367,7 +367,7 @@ def handle_engine_move():
             result = board.result()
             if result == '1-0':
                 winner = 'white'
-                s.sendall(b"victory")
+                s.sendall(b"victory\n")
                 
                 # hardware.start_animation("win")
                 # with open("LED_mode.txt", 'w') as f:
@@ -377,7 +377,7 @@ def handle_engine_move():
                 # display_LCD.show_screen("victory")
             elif result == '0-1':
                 winner = 'black'
-                s.sendall(b"lose")
+                s.sendall(b"lose\n")
                 # hardware.start_animation("lose")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("lose")
@@ -423,7 +423,7 @@ def handle_engine_move():
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
-                    s.sendall(b"victory")
+                    s.sendall(b"victory\n")
                     
                     #hardware.start_animation("win")
                     # with open("LED_mode.txt", 'w') as f:
@@ -431,7 +431,7 @@ def handle_engine_move():
 #                        time.sleep(5) 
                 elif result == '0-1':
                     winner = 'black'
-                    s.sendall(b"lose")
+                    s.sendall(b"lose\n")
                     #hardware.start_animation("lose")
                     # with open("LED_mode.txt", 'w') as f:
                     #     f.write("lose")
@@ -572,7 +572,7 @@ def set_bot_difficulty():
                 'status': 'error',
                 'message': 'Engine not initialized'
             }), 500
-        
+
         data = request.get_json()
         elo = data.get('elo', 1350)
         skill = data.get('skill', 10)
