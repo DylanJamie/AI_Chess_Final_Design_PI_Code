@@ -137,6 +137,7 @@ def get_engine_move(game_speed=10):
         # print(f"Legal moves count: {len(legal_moves_list)}")
         if legal_moves_list:
             print(f"Sample legal moves: {[board.san(move) for move in legal_moves_list[:10]]}")
+
         
         # Calculate thinking time based on game speed
         # At speed 1: 2.0 seconds (slow)
@@ -150,6 +151,7 @@ def get_engine_move(game_speed=10):
         # Use a timeout limit to prevent hanging (max 30 seconds total)
         time_limit = min(thinking_time * 2, 30.0)
 
+        hardware.start_animation("thinking_10")
         # # Thinking LED/LCD
         # with open("LED_mode.txt", 'w') as f:
         #     f.write("thinking")
@@ -548,6 +550,14 @@ def game_control():
             global board, game_active, current_player
             board = chess.Board()
             current_player = 'white'
+
+            # Force LCD/LED Reset
+            # hardware.current_animation = None
+            # hardware.stop_all()
+
+            # Start thinking animation
+            hardware.start_animation("thinking")
+            
             return jsonify({
                 'status': 'success',
                 'message': 'Game reset to starting position',
