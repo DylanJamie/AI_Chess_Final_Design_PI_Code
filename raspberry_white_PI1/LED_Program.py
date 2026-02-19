@@ -2,9 +2,17 @@ import board
 import neopixel
 import time
 import math
+import socket
 from random import randint
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
 # NeoPixels must be connected to D10, D12, D18 or D21 to work.
+
+
+## Socket Setup ##
+HOST = "127.0.0.1"
+PORT = 4321
+
+
 RED = (255,0,0, 0)
 GREEN = (0,255,0, 0)
 BLUE = (0,0,255, 0)
@@ -21,7 +29,7 @@ num_pixels = 16
 ORDER = neopixel.GRBW
 
 class RingLed:
-    def __init__(self, pixel_pin, num_pixels, ORDER):
+    def __init__(self, pixel_pin = pixel_pin, num_pixels = num_pixels, ORDER = ORDER):
         self.pixel_pin = pixel_pin
         self.num_pixels = num_pixels
         self.ORDER = ORDER
@@ -54,7 +62,7 @@ class RingLed:
         self.pixels.brightness = original_brightness  # RESTORE
 
 
-    def _flash(self, delay = 0.003, duration = 3, steps = 1000, min_brightness = 1, max_brightness = 255, color = None ):
+    def _flash(self, delay = 0.003, duration = 1.29, steps = 1000, min_brightness = 1, max_brightness = 255, color = None ):
 
         original_brightness = self.pixels.brightness
         start_time = time.time()
@@ -88,7 +96,7 @@ class RingLed:
                 time.sleep(delay)
         self.pixels.brightness = original_brightness  # RESTORE
 
-    def _breath(self, delay = 0.0001, duration = 3, steps = 1000, min_brightness = 1, max_brightness = 255, color = None ):
+    def _breath(self, delay = 0.0001, duration = 0.785, steps = 1000, min_brightness = 1, max_brightness = 255, color = None ):
         original_brightness = self.pixels.brightness
         start_time = time.time()
         t = 0
@@ -117,8 +125,8 @@ class RingLed:
         self.pixels.brightness = original_brightness  # RESTORE
 
     def game_win(self):
-        self._spin(duration = 2, trail_length = 12)
-        self._flash(duration = 2)
+        self._spin(duration = 1, trail_length = 12)
+        self._flash(duration = 1)
         return()
 
     def game_lose(self):
@@ -132,11 +140,68 @@ class RingLed:
         self._spin(color = ORANGE, trail_length = 23)
         return()
     def thinking(self):
-        self._breath(duration = 1, delay = 0.001, min_brightness = 40)
+        self._breath(delay = 0.001, min_brightness = 40)
         return()
+        
 
-if __name__ == "__main__":
-    # Move any test code here
-    # led = RingLed(...)
-    # led.thinking()
-    pass
+    def ring_animation(self, state):
+        match state:
+            case "win":
+                self.game_win()
+                
+            case "lose":
+                self.game_lose()
+                
+            case "draw":
+                self.game_draw()
+                
+            case "under_attack":
+                self.under_attack()
+                
+            case "thinking":
+                self.thinking()
+                
+            case _:
+                self.thinking()
+
+## Header ##
+myRING = RingLed()
+
+##init socket
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind((HOST, PORT))
+s.listen(1)
+
+# take input from socket and set that to the game state
+conn, addr = s.accept()
+screen_type = None
+conn.settimeout(0.1)
+buffer = ""
+
+while True:
+    try:
+        data = conn.recv(1024)
+        data_dec = data.decode().strip()
+
+        buffer += data.decode()
+        print("original: ", data_dec)
+        while "\n" in buffer:
+            msg, buffer = buffer.split("\n", 1)
+            msg = msg.strip()
+
+            if msg:
+                screen_type = msg
+                print("Game Mode:", screen_type)
+
+    except socket.timeout:
+        pass
+
+
+    if screen_type:
+        myRING.ring_animation(screen_type) 
+
+
+conn.close()
+s.close()
+print("code is done")
+    

@@ -13,7 +13,8 @@ from flask import Flask, request, jsonify
 import json
 import time
 import os
-from hardware_controller import ChessHardware
+import socket
+#from hardware_controller import ChessHardware
 # from LED_Program import RingLed
 # from lcd_animation import LCD
 
@@ -37,10 +38,22 @@ KRUSH_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'krush.nnue')
 POLGAR_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'polgar.nnue')
 ANAND_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'anand.nnue')
 
+# Create Socket Port
+HOST = "127.0.0.1"
+PORT1 = 1234
+PORT2 = 4321
+s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+s1.connect((HOST,PORT1)) ############### Code will crash if LCD code is not running!
+s2.connect((HOST,PORT2))  ############### Code will crash if LED code is not running!
+
 # Create Class objects
 # display_lcd = LCD()
 # display_LED = RingLed()
-hardware = ChessHardware()
+#hardware = ChessHardware()
+
+s1.sendall(b"selection\n")
+s2.sendall(b"draw\n")
 
 def initialize_engine():
     """Initialize the Stockfish chess engine"""
@@ -116,8 +129,9 @@ def get_engine_move(game_speed=10):
     
     try:
         # Start thinking animaiton on LED and lcd screen
-        hardware.start_animation("thinking")
-        
+        #hardware.start_animation("thinking")        
+        s1.sendall(b"score\n")
+        s2.sendall(b"thinking\n")
         # print(f"Getting engine move. Board FEN: {board.fen()}")
         legal_moves_list = list(board.legal_moves)
         # print(f"Legal moves count: {len(legal_moves_list)}")
@@ -182,13 +196,16 @@ def get_engine_move(game_speed=10):
         # Make the move
         board.push(move)        
 
-        # if board.is_game_over():
-        #     if board.is_checkmate():
-        #         print("Checkmate detected! Starting victory animation.")
-        #         hardware.start_animation("win")
-        #     else:
-        #         print("Draw detected.")
-        #         hardware.start_animation("draw")
+        if board.is_game_over():
+            if board.is_checkmate():
+                print("Checkmate detected! Starting victory animation.")
+                #hardware.start_animation("win")
+                s1.sendall(b"victory\n")
+                s2.sendall(b"win\n")
+            else:
+                print("Draw detected.")
+                #s.sendall(b"draw")
+                #hardware.start_animation("draw")
         
         global current_player
         current_player = 'black' if current_player == 'white' else 'white'
@@ -293,8 +310,14 @@ def handle_move():
                     # hardware.start_animation("win")
                     # else:
                     #     hardware.start_animation("lose")
+                    s1.sendall(b"victory\n")
+                    s2.sendall(b"win\n")
+                    
                 elif result == '0-1':
                     winner = 'black'
+                    s1.sendall(b"lose\n")
+                    s2.sendall(b"lose\n")
+                    
                     # hardware.start_animation("lose")
                     # with open("LED_mode.txt", 'w') as f:
                     #     f.write("lose")
@@ -303,6 +326,7 @@ def handle_move():
                     # display_LCD.show_lose()
                 else:
                     winner = 'draw'
+                    #s.sendall(b"draw")
                     # hardware.start_animation("draw")
                     # with open("LED_mode.txt", 'w') as f:
                     #     f.write("draw")
@@ -354,6 +378,9 @@ def handle_engine_move():
             result = board.result()
             if result == '1-0':
                 winner = 'white'
+                s1.sendall(b"victory\n")
+                s2.sendall(b"win\n")
+                
                 # hardware.start_animation("win")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("win")
@@ -362,6 +389,9 @@ def handle_engine_move():
                 # display_LCD.show_screen("victory")
             elif result == '0-1':
                 winner = 'black'
+                s1.sendall(b"lose\n")
+                s2.sendall(b"lose\n")
+                    
                 # hardware.start_animation("lose")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("lose")
@@ -370,6 +400,7 @@ def handle_engine_move():
                 # display_LCD.show_screen("lose")
             else:
                 winner = 'draw'
+                #s.sendall(b"draw")
                 # hardware.start_animation("draw")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("draw")
@@ -406,18 +437,23 @@ def handle_engine_move():
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
-                    hardware.start_animation("win")
+                    s1.sendall(b"victory\n")
+                    s2.sendall(b"win\n")
+                    #hardware.start_animation("win")
                     # with open("LED_mode.txt", 'w') as f:
                     #     f.write("win")
 #                        time.sleep(5) 
                 elif result == '0-1':
                     winner = 'black'
-                    hardware.start_animation("lose")
+                    s1.sendall(b"lose\n")
+                    s2.sendall(b"lose\n")
+                    #hardware.start_animation("lose")
                     # with open("LED_mode.txt", 'w') as f:
                     #     f.write("lose")
                     #     time.sleep(5)
                 else:
                     winner = 'draw'
+                    #s.sendall(b"draw")
             
             return jsonify({
                 'status': 'success',
@@ -469,12 +505,16 @@ def get_board_state_endpoint():
             result = board.result()
             if result == '1-0':
                 winner = 'white'
+                s1.sendall("victory\n")
+                s2.sendall("win\n")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("win")
                 # time.sleep(5)
            
             elif result == '0-1':
                 winner = 'black'
+                s1.sendall("lose\n")
+                s2.sendall("lose\n")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("lose")
                 # time.sleep(5)
@@ -559,6 +599,7 @@ def set_bot_difficulty():
                 'status': 'error',
                 'message': 'Engine not initialized'
             }), 500
+
         
         data = request.get_json()
         elo = data.get('elo', 1350)
