@@ -140,7 +140,7 @@ class RingLed:
         self._spin(color = ORANGE, trail_length = 23)
         return()
     def thinking(self):
-        self._breath(duration = 1, delay = 0.001, min_brightness = 40)
+        self._breath(delay = 0.001, min_brightness = 40)
         return()
         
 
@@ -184,7 +184,7 @@ while True:
         data_dec = data.decode().strip()
 
         buffer += data.decode()
-
+        print("original: ", data_dec)
         while "\n" in buffer:
             msg, buffer = buffer.split("\n", 1)
             msg = msg.strip()
