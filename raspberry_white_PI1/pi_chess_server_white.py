@@ -383,9 +383,13 @@ def handle_engine_move():
             result = board.result()
             if result == '1-0':
                 winner = 'white'
-                s1.sendall(b"victory\n")
-                s2.sendall(b"win\n")
-                
+                if current_player == 'white':
+                    s1.sendall(b"victory\n")
+                    s2.sendall(b"win\n")
+                else:
+                    s1.sendall(b"lose\n")
+                    s2.sendall(b"lose\n")
+
                 # hardware.start_animation("win")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("win")
@@ -394,9 +398,13 @@ def handle_engine_move():
                 # display_LCD.show_screen("victory")
             elif result == '0-1':
                 winner = 'black'
-                s1.sendall(b"lose\n")
-                s2.sendall(b"lose\n")
-                    
+                if current_player == 'black':
+                    s1.sendall(b"victory\n")
+                    s2.sendall(b"win\n")
+                else:
+                    s1.sendall(b"lose\n")
+                    s2.sendall(b"lose\n")
+
                 # hardware.start_animation("lose")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("lose")
@@ -442,20 +450,22 @@ def handle_engine_move():
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
-                    s1.sendall(b"victory\n")
-                    s2.sendall(b"win\n")
-                    #hardware.start_animation("win")
-                    # with open("LED_mode.txt", 'w') as f:
-                    #     f.write("win")
-#                        time.sleep(5) 
+                    if current_player == 'white':
+                        s1.sendall(b"victory\n")
+                        s2.sendall(b"win\n")
+                    else:
+                        s1.sendall(b"lose\n")
+                        s2.sendall(b"lose\n")
+                        
                 elif result == '0-1':
                     winner = 'black'
-                    s1.sendall(b"lose\n")
-                    s2.sendall(b"lose\n")
-                    #hardware.start_animation("lose")
-                    # with open("LED_mode.txt", 'w') as f:
-                    #     f.write("lose")
-                    #     time.sleep(5)
+                    if current_player == 'black':
+                        s1.sendall(b"victory\n")
+                        s2.sendall(b"win\n")
+                    else:
+                        s1.sendall(b"lose\n")
+                        s2.sendall(b"lose\n")
+
                 else:
                     winner = 'draw'
                     #s.sendall(b"draw")
@@ -510,19 +520,21 @@ def get_board_state_endpoint():
             result = board.result()
             if result == '1-0':
                 winner = 'white'
-                s1.sendall("victory\n")
-                s2.sendall("win\n")
-                # with open("LED_mode.txt", 'w') as f:
-                #     f.write("win")
-                # time.sleep(5)
-           
+                if current_player == 'white':
+                    s1.sendall(b"victory\n")
+                    s2.sendall(b"win\n")
+                else:
+                    s1.sendall(b"lose\n")
+                    s2.sendall(b"lose\n")
+
             elif result == '0-1':
                 winner = 'black'
-                s1.sendall("lose\n")
-                s2.sendall("lose\n")
-                # with open("LED_mode.txt", 'w') as f:
-                #     f.write("lose")
-                # time.sleep(5)
+                if current_player == 'black':
+                    s1.sendall(b"victory\n")
+                    s2.sendall(b"win\n")
+                else:
+                    s1.sendall(b"lose\n")
+                    s2.sendall(b"lose\n")
            
             else:
                 winner = 'draw'
