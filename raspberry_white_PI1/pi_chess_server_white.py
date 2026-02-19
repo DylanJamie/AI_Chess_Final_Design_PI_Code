@@ -50,6 +50,8 @@ s.connect((HOST,PORT)) ############### Code will crash if LCD code is not runnin
 # display_LED = RingLed()
 #hardware = ChessHardware()
 
+s.sendall(b"selection\n")
+
 def initialize_engine():
     """Initialize the Stockfish chess engine"""
     global engine
@@ -573,6 +575,7 @@ def set_bot_difficulty():
                 'message': 'Engine not initialized'
             }), 500
 
+        
         data = request.get_json()
         elo = data.get('elo', 1350)
         skill = data.get('skill', 10)

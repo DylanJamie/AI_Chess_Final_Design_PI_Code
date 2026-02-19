@@ -239,19 +239,16 @@ while True:
                 screen_type = msg
                 print("Game Mode:", screen_type)
         
- #        if data_dec != "":
-#             screen_type = data_dec
-# 
+ 
     except socket.timeout:
         pass
     
-    #print("Game Mode: ", screen_type)
+
     if screen_type:
         myLCD.show_screen(screen_type) ## Send what was recieved from socket to LCD code to update screen
 
 
-
-    #time.sleep(0.1)
+        
 conn.close()
 s.close()
 print("code is done")
