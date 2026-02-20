@@ -151,7 +151,7 @@ def get_engine_move(game_speed=10):
         # Use a timeout limit to prevent hanging (max 30 seconds total)
         time_limit = min(thinking_time * 2, 30.0)
 
-        hardware.start_animation("thinking_10")
+        #hardware.start_animation("thinking_10")
         # # Thinking LED/LCD
         # with open("LED_mode.txt", 'w') as f:
         #     f.write("thinking")
@@ -207,9 +207,9 @@ def get_engine_move(game_speed=10):
                 #s.sendall(b"draw")
                 #hardware.start_animation("draw")
         
-        global current_player
-        current_player = 'black' if current_player == 'white' else 'white'
-        print(f"Engine move applied: {move} ({san_notation})")
+        # global current_player
+        # current_player = 'black' if current_player == 'white' else 'white'
+        # print(f"Engine move applied: {move} ({san_notation})")
         
         return {
             'from': chess.square_name(move.from_square),
@@ -304,19 +304,28 @@ def handle_move():
             winner = None
             
             if game_over:
+                print("======= NUMBA 1 ========")
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
-                    # hardware.start_animation("win")
-                    # else:
-                    #     hardware.start_animation("lose")
-                    s1.sendall(b"victory\n")
-                    s2.sendall(b"win\n")
-                    
+                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
+                    print(f"!!!!!!!!!!!! I AM {current_player} !!!!!!!!!!!!!!!")
+                    if current_player == 'white':
+                        s1.sendall(b"victory\n")
+                        s2.sendall(b"win\n")
+                    else:
+                        s1.sendall(b"lose\n")
+                        s2.sendall(b"lose\n")
+                        
                 elif result == '0-1':
                     winner = 'black'
-                    s1.sendall(b"lose\n")
-                    s2.sendall(b"lose\n")
+                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
+                    if current_player == 'black':
+                        s1.sendall(b"victory\n")
+                        s2.sendall(b"win\n")
+                    else:
+                        s1.sendall(b"lose\n")
+                        s2.sendall(b"lose\n")
                     
                     # hardware.start_animation("lose")
                     # with open("LED_mode.txt", 'w') as f:
@@ -375,12 +384,17 @@ def handle_engine_move():
         # If the game is already over (checkmate / stalemate / draw), do NOT error.
         # Return a clean success response so the GUI can end/restart gracefully.
         if board.is_game_over():
+            print("======= NUMBA 2 Chat IFK if this ever happens  ========")
             result = board.result()
             if result == '1-0':
                 winner = 'white'
-                s1.sendall(b"victory\n")
-                s2.sendall(b"win\n")
-                
+                # if current_player == 'white':
+                #     s1.sendall(b"victory\n")
+                #     s2.sendall(b"win\n")
+                # else:
+                #     s1.sendall(b"lose\n")
+                #     s2.sendall(b"lose\n")
+
                 # hardware.start_animation("win")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("win")
@@ -389,9 +403,13 @@ def handle_engine_move():
                 # display_LCD.show_screen("victory")
             elif result == '0-1':
                 winner = 'black'
-                s1.sendall(b"lose\n")
-                s2.sendall(b"lose\n")
-                    
+                # if current_player == 'black':
+                #     s1.sendall(b"victory\n")
+                #     s2.sendall(b"win\n")
+                # else:
+                #     s1.sendall(b"lose\n")
+                #     s2.sendall(b"lose\n")
+
                 # hardware.start_animation("lose")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("lose")
@@ -434,23 +452,29 @@ def handle_engine_move():
             winner = None
             
             if game_over:
+                print("======= NUMBA 3 ========")
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
-                    s1.sendall(b"victory\n")
-                    s2.sendall(b"win\n")
-                    #hardware.start_animation("win")
-                    # with open("LED_mode.txt", 'w') as f:
-                    #     f.write("win")
-#                        time.sleep(5) 
+                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
+                    print(f"!!!!!!!!!!!! I AM {current_player} !!!!!!!!!!!!!!!")
+                    if current_player == 'white':
+                        s1.sendall(b"victory\n")
+                        s2.sendall(b"win\n")
+                    else:
+                        s1.sendall(b"lose\n")
+                        s2.sendall(b"lose\n")
+                        
                 elif result == '0-1':
                     winner = 'black'
-                    s1.sendall(b"lose\n")
-                    s2.sendall(b"lose\n")
-                    #hardware.start_animation("lose")
-                    # with open("LED_mode.txt", 'w') as f:
-                    #     f.write("lose")
-                    #     time.sleep(5)
+                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
+                    if current_player == 'black':
+                        s1.sendall(b"victory\n")
+                        s2.sendall(b"win\n")
+                    else:
+                        s1.sendall(b"lose\n")
+                        s2.sendall(b"lose\n")
+
                 else:
                     winner = 'draw'
                     #s.sendall(b"draw")
@@ -502,22 +526,25 @@ def get_board_state_endpoint():
         winner = None
         
         if game_over:
+            print("======= NUMA 4 Chat IDK if this happens ever ========")
             result = board.result()
             if result == '1-0':
                 winner = 'white'
-                s1.sendall("victory\n")
-                s2.sendall("win\n")
-                # with open("LED_mode.txt", 'w') as f:
-                #     f.write("win")
-                # time.sleep(5)
-           
+                # if current_player == 'white':
+                #     s1.sendall(b"victory\n")
+                #     s2.sendall(b"win\n")
+                # else:
+                #     s1.sendall(b"lose\n")
+                #     s2.sendall(b"lose\n")
+
             elif result == '0-1':
                 winner = 'black'
-                s1.sendall("lose\n")
-                s2.sendall("lose\n")
-                # with open("LED_mode.txt", 'w') as f:
-                #     f.write("lose")
-                # time.sleep(5)
+                # if current_player == 'black':
+                #     s1.sendall(b"victory\n")
+                #     s2.sendall(b"win\n")
+                # else:
+                #     s1.sendall(b"lose\n")
+                #     s2.sendall(b"lose\n")
            
             else:
                 winner = 'draw'
@@ -671,40 +698,13 @@ def set_bot_difficulty():
             'status': 'error',
             'message': f'Failed to set bot difficulty: {str(e)}'
         }), 500
-
+    
 def cleanup():
     """Cleanup resources"""
     global engine
     if engine:
         engine.quit()
         print("Chess engine closed")
-
-# @app.route('/update_board', methods=['POST'])
-# def update_board():
-#     global board
-#     data = request.get_json()
-#     fen = data.get('fen')
-
-#     if fen:
-#         board.set_fen(fen)
-        
-#         if board.is_game_over():
-#             # ONLY start if we aren't already animating
-#             # This prevents the glitching you saw
-#             if not hardware.is_animating():
-#                 res = board.result()
-#                 if res == "1-0":
-#                     hardware.start_animation("win")
-#                 elif res == "0-1":
-#                     hardware.start_animation("lose")
-#                 else:
-#                     hardware.start_animation("draw")
-#             return jsonify({'status': 'success', 'message': 'Game Over'})
-
-#         # Default state
-#         hardware.start_animation("thinking")
-        
-#     return jsonify({'status': 'success'})
     
 if __name__ == '__main__':
     print("="*60)
