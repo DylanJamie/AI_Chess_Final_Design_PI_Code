@@ -178,7 +178,7 @@ def get_engine_move(game_speed=10):
         
         # Make the move
         board.push(move)        
-        
+     
         return {
             'from': chess.square_name(move.from_square),
             'to': chess.square_name(move.to_square),
@@ -275,9 +275,12 @@ def handle_move():
             winner = None
             
             if game_over:
+                print("======= NUMBA 1 ========")
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
+                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
+                    print(f"!!!!!!!!!!!! I AM {current_player} !!!!!!!!!!!!!!!")
                     if current_player == 'white':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
@@ -287,6 +290,7 @@ def handle_move():
                         
                 elif result == '0-1':
                     winner = 'black'
+                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
                     if current_player == 'black':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
@@ -339,15 +343,16 @@ def handle_engine_move():
         # If the game is already over (checkmate / stalemate / draw), do NOT error.
         # Return a clean success response so the GUI can end/restart gracefully.
         if board.is_game_over():
+            print("======= NUMBA 2 Chat IFK if this ever happens  ========")
             result = board.result()
             if result == '1-0':
                 winner = 'white'
-                if current_player == 'white':
-                    s1.sendall(b"victory\n")
-                    s2.sendall(b"win\n")
-                else:
-                    s1.sendall(b"lose\n")
-                    s2.sendall(b"lose\n")
+                # if current_player == 'white':
+                #     s1.sendall(b"victory\n")
+                #     s2.sendall(b"win\n")
+                # else:
+                #     s1.sendall(b"lose\n")
+                #     s2.sendall(b"lose\n")
 
                 # hardware.start_animation("win")
                 # with open("LED_mode.txt", 'w') as f:
@@ -357,12 +362,12 @@ def handle_engine_move():
                 # display_LCD.show_screen("victory")
             elif result == '0-1':
                 winner = 'black'
-                if current_player == 'black':
-                    s1.sendall(b"victory\n")
-                    s2.sendall(b"win\n")
-                else:
-                    s1.sendall(b"lose\n")
-                    s2.sendall(b"lose\n")
+                # if current_player == 'black':
+                #     s1.sendall(b"victory\n")
+                #     s2.sendall(b"win\n")
+                # else:
+                #     s1.sendall(b"lose\n")
+                #     s2.sendall(b"lose\n")
 
                 # hardware.start_animation("lose")
                 # with open("LED_mode.txt", 'w') as f:
@@ -406,9 +411,12 @@ def handle_engine_move():
             winner = None
             
             if game_over:
+                print("======= NUMBA 3 ========")
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
+                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
+                    print(f"!!!!!!!!!!!! I AM {current_player} !!!!!!!!!!!!!!!")
                     if current_player == 'white':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
@@ -418,6 +426,7 @@ def handle_engine_move():
                         
                 elif result == '0-1':
                     winner = 'black'
+                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
                     if current_player == 'black':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
@@ -476,24 +485,25 @@ def get_board_state_endpoint():
         winner = None
         
         if game_over:
+            print("======= NUMA 4 Chat IDK if this happens ever ========")
             result = board.result()
             if result == '1-0':
                 winner = 'white'
-                if current_player == 'white':
-                    s1.sendall(b"victory\n")
-                    s2.sendall(b"win\n")
-                else:
-                    s1.sendall(b"lose\n")
-                    s2.sendall(b"lose\n")
+                # if current_player == 'white':
+                #     s1.sendall(b"victory\n")
+                #     s2.sendall(b"win\n")
+                # else:
+                #     s1.sendall(b"lose\n")
+                #     s2.sendall(b"lose\n")
 
             elif result == '0-1':
                 winner = 'black'
-                if current_player == 'black':
-                    s1.sendall(b"victory\n")
-                    s2.sendall(b"win\n")
-                else:
-                    s1.sendall(b"lose\n")
-                    s2.sendall(b"lose\n")
+                # if current_player == 'black':
+                #     s1.sendall(b"victory\n")
+                #     s2.sendall(b"win\n")
+                # else:
+                #     s1.sendall(b"lose\n")
+                #     s2.sendall(b"lose\n")
            
             else:
                 winner = 'draw'
@@ -647,40 +657,13 @@ def set_bot_difficulty():
             'status': 'error',
             'message': f'Failed to set bot difficulty: {str(e)}'
         }), 500
-
+    
 def cleanup():
     """Cleanup resources"""
     global engine
     if engine:
         engine.quit()
         print("Chess engine closed")
-
-# @app.route('/update_board', methods=['POST'])
-# def update_board():
-#     global board
-#     data = request.get_json()
-#     fen = data.get('fen')
-
-#     if fen:
-#         board.set_fen(fen)
-        
-#         if board.is_game_over():
-#             # ONLY start if we aren't already animating
-#             # This prevents the glitching you saw
-#             if not hardware.is_animating():
-#                 res = board.result()
-#                 if res == "1-0":
-#                     hardware.start_animation("win")
-#                 elif res == "0-1":
-#                     hardware.start_animation("lose")
-#                 else:
-#                     hardware.start_animation("draw")
-#             return jsonify({'status': 'success', 'message': 'Game Over'})
-
-#         # Default state
-#         hardware.start_animation("thinking")
-        
-#     return jsonify({'status': 'success'})
     
 if __name__ == '__main__':
     print("="*60)
