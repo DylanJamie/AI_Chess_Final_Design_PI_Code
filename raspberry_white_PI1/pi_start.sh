@@ -9,6 +9,13 @@ set -e
 # Print a User Message
 echo "Press Ctrl+C to stop all programs"
 
+<<<<<<< HEAD
+# Clean up and stop all programs
+cleanup() {
+    echo
+    echo "Stopping all processes..."
+    kill 0 # Kill all processes in current Group
+=======
 # Collect all the PIDs
 pids=()
 
@@ -19,6 +26,7 @@ cleanup() {
     echo "Stopping all processes..."
     kill "${pids[@]}" 2>/dev/null  # Kill all processes in current Group
     exit 0
+>>>>>>> 9abbd8c47e1f7f523777c79644cf1cd6071250c3
 }
 
 # when you press Ctrl+C Stop all the processes in this group
@@ -26,6 +34,17 @@ trap cleanup SIGINT SIGTERM
 
 # Access the enviorment
 source ~/pi-env/bin/activate
+<<<<<<< HEAD
+
+# Run the LCD Code
+python ~/Downloads/PIGAME_TEST/raspberry_white_PI1/lcd_animation.py &
+
+# Run the LED Code
+python ~/Downloads/PIGAME_TEST/raspberry_white_PI1/LED_Program.py &
+
+# Run the Main Program
+python ~/Downloads/PIGAME_TEST/raspberry_white_PI1/pi_chess_server_white.py &
+=======
 echo "Enviorment started"
 sleep 1
 
@@ -42,5 +61,6 @@ sleep 1
 # Run the Main Program
 python ~/Downloads/PIGAME_TEST/raspberry_white_PI1/pi_chess_server_white.py & pids+=($!)
 echo "Main started"
+>>>>>>> 9abbd8c47e1f7f523777c79644cf1cd6071250c3
 
 wait
