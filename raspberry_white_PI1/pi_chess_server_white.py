@@ -24,6 +24,8 @@ engine = None
 game_active = False
 current_player = 'white'
 
+
+
 # NNUE file paths (absolute paths)
 NNUE_BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'nnue'))
 CARLSEN_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'carlsen_halfkav2_hm.nnue')
@@ -48,7 +50,12 @@ s2.connect((HOST,PORT2))  ############### Code will crash if LED code is not run
 s1.sendall(b"selection\n")
 s2.sendall(b"draw\n")
 
+# Global variable to count number of wins
+global_win_counter = 0;
+
 def initialize_engine():
+
+    
     """Initialize the Stockfish chess engine"""
     global engine
     try:
@@ -77,6 +84,8 @@ def get_board_state():
     return board_state
 
 def is_valid_move(from_square, to_square, piece_code):
+
+
     """Validate if a move is legal"""
     try:
         # Validate the moves the engine or player is trying to make
@@ -93,6 +102,8 @@ def is_valid_move(from_square, to_square, piece_code):
         return False
 
 def make_move(from_square, to_square):
+    print("!!!!!!!!!!!!!!!!MAKE_MOVE!!!!!!!!!!!!!")
+
     """Make a move on the board"""
     try:
         # Actually make the Move
@@ -115,6 +126,8 @@ def get_engine_move(game_speed=10):
         game_speed: Speed multiplier (1-20). Higher = faster. Default 10.
                    Thinking time = 2.0 / game_speed seconds
     """
+    global global_win_counter
+    global wdl
     if not engine:
         print("Engine not initialized")
         return None
@@ -126,7 +139,7 @@ def get_engine_move(game_speed=10):
     try:
         # Start thinking animaiton on LED and lcd screen
         #hardware.start_animation("thinking")        
-        s1.sendall(b"score\n")
+        s1.sendall(f"score\n{global_win_counter}\n".encode())
         s2.sendall(b"thinking\n")
         # print(f"Getting engine move. Board FEN: {board.fen()}")
         legal_moves_list = list(board.legal_moves)
@@ -236,6 +249,7 @@ def debug_info():
 @app.route('/api/move', methods=['POST'])
 def handle_move():
     """Handle a move (validate and apply it to this Pi's board)"""
+    global global_win_counter
     try:
         data = request.get_json()
         if not data:
@@ -283,7 +297,9 @@ def handle_move():
                     print(f"!!!!!!!!!!!! I AM {current_player} !!!!!!!!!!!!!!!")
                     if current_player == 'white':
                         s1.sendall(b"victory\n")
+                        print("RESULT IF WIN: ", board.result())
                         s2.sendall(b"win\n")
+                        global_win_counter += 1
                     else:
                         s1.sendall(b"lose\n")
                         s2.sendall(b"lose\n")
@@ -328,6 +344,7 @@ def handle_move():
 @app.route('/api/engine-move', methods=['POST'])
 def handle_engine_move():
     """Get the engine's move"""
+    global global_win_counter
     try:
         if not engine:
             # Try to reinitialize engine
@@ -420,6 +437,9 @@ def handle_engine_move():
                     if current_player == 'white':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
+                        global_win_counter += 1
+                        print("RESULT IF WIN: ", board.result())
+                        
                     else:
                         s1.sendall(b"lose\n")
                         s2.sendall(b"lose\n")
@@ -579,6 +599,15 @@ def game_control():
 @app.route('/api/set-bot-difficulty', methods=['POST'])
 def set_bot_difficulty():
     """Set bot difficulty level (ELO and skill) and optionally configure NNUE"""
+    global global_win_counter
+    global board
+    
+    #  Reset win back to zero
+    if board.result() == "*":
+        global_win_counter = 0;
+
+    
+    
     try:
         if not engine:
             return jsonify({
@@ -634,7 +663,7 @@ def set_bot_difficulty():
         engine.configure(config)
         
         # Reset the board to starting position when setting difficulty
-        global board
+    #    global board
         board = chess.Board()
         
         nnue_status = f"with NNUE ({nnue_model})" if use_nnue else "standard evaluation"
