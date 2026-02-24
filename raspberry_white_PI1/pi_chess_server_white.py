@@ -53,6 +53,8 @@ global_win_counter = 0;
 
 
 def initialize_engine():
+
+    
     """Initialize the Stockfish chess engine"""
     global engine
     try:
@@ -81,6 +83,8 @@ def get_board_state():
     return board_state
 
 def is_valid_move(from_square, to_square, piece_code):
+
+
     """Validate if a move is legal"""
     try:
         # Validate the moves the engine or player is trying to make
@@ -97,6 +101,8 @@ def is_valid_move(from_square, to_square, piece_code):
         return False
 
 def make_move(from_square, to_square):
+    print("!!!!!!!!!!!!!!!!MAKE_MOVE!!!!!!!!!!!!!")
+
     """Make a move on the board"""
     try:
         # Actually make the Move
@@ -120,6 +126,7 @@ def get_engine_move(game_speed=10):
                    Thinking time = 2.0 / game_speed seconds
     """
     global global_win_counter
+#    global wdl
     if not engine:
         print("Engine not initialized")
         return None
@@ -646,6 +653,13 @@ def set_bot_difficulty():
         # Reset the board to starting position when setting difficulty
         global board
         board = chess.Board()
+
+
+
+        
+        #global_win_counter = 0 # Reset win counter
+        
+
         
         nnue_status = f"with NNUE ({nnue_model})" if use_nnue else "standard evaluation"
         print(f"Bot difficulty set: ELO {elo}, Skill Level {skill}, {nnue_status}")

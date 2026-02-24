@@ -122,11 +122,6 @@ class LCD:
     def turn_off(self):
         self.disp.image(self.black)
 
-
-
-
-
-
     def game_selection(self):
         chess_copy = self.chessback.copy()
         self.draw_centered_text(chess_copy,"Waiting for game \n selection...",BOLD,FONTSIZE - 1,fill="white")
@@ -142,11 +137,6 @@ class LCD:
             time.sleep(delay)
 
 
-    #def show_victory(self):
-        # self.disp.image(self.victory)
-        # self.disp.image(self.victory_rot)
-
-
     def show_lose(self):
         self.disp.image(self.lose_left_rot)
         time.sleep(0.5)
@@ -158,12 +148,12 @@ class LCD:
 
     def show_score(self, score):
         chess_copy = self.chessback.copy()
-        self.draw_centered_text(chess_copy,f"Score: {score}",BOLD,FONTSIZE+12,fill="white")
+        self.draw_centered_text(chess_copy,f"Win: {score}",BOLD,FONTSIZE+12,fill="white")
         self.disp.image(chess_copy)
 
     def show_prop(self, prop):
         chess_copy = self.chessback.copy()
-        self.draw_centered_text(chess_copy,f"Probability\nWin: {prop}%",BOLD,FONTSIZE+5,fill="white")
+        self.draw_centered_text(chess_copy,f"Probability\nWins: {prop}%",BOLD,FONTSIZE+5,fill="white")
         self.disp.image(chess_copy)
 
     def show_draw(self,):
@@ -255,7 +245,6 @@ while True:
 
     # else:
     #     myLCD.show_screen(screen_type ) ## Send what was recieved from socket to LCD code to update screen
-
 
         
 conn.close()
