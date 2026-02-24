@@ -48,6 +48,10 @@ s2.connect((HOST,PORT2))  ############### Code will crash if LED code is not run
 s1.sendall(b"selection\n")
 s2.sendall(b"draw\n")
 
+# Global variable to count number of wins
+win_nums = 0;
+
+
 def initialize_engine():
     """Initialize the Stockfish chess engine"""
     global engine
@@ -579,6 +583,7 @@ def game_control():
 @app.route('/api/set-bot-difficulty', methods=['POST'])
 def set_bot_difficulty():
     """Set bot difficulty level (ELO and skill) and optionally configure NNUE"""
+
     try:
         if not engine:
             return jsonify({
