@@ -49,7 +49,7 @@ s1.sendall(b"selection\n")
 s2.sendall(b"draw\n")
 
 # Global variable to count number of wins
-win_nums = 0;
+global_win_counter = 0;
 
 
 def initialize_engine():
@@ -119,6 +119,7 @@ def get_engine_move(game_speed=10):
         game_speed: Speed multiplier (1-20). Higher = faster. Default 10.
                    Thinking time = 2.0 / game_speed seconds
     """
+    global global_win_counter
     if not engine:
         print("Engine not initialized")
         return None
@@ -130,7 +131,7 @@ def get_engine_move(game_speed=10):
     try:
         # Start thinking animaiton on LED and lcd screen
         #hardware.start_animation("thinking")        
-        s1.sendall(b"score\n")
+        s1.sendall(f"score\n{global_win_counter}\n".encode())
         s2.sendall(b"thinking\n")
         # print(f"Getting engine move. Board FEN: {board.fen()}")
         legal_moves_list = list(board.legal_moves)
@@ -240,6 +241,7 @@ def debug_info():
 @app.route('/api/move', methods=['POST'])
 def handle_move():
     """Handle a move (validate and apply it to this Pi's board)"""
+    global global_win_counter
     try:
         data = request.get_json()
         if not data:
@@ -288,6 +290,7 @@ def handle_move():
                     if current_player == 'white':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
+                        global_win_counter += 1
                     else:
                         s1.sendall(b"lose\n")
                         s2.sendall(b"lose\n")
@@ -332,6 +335,7 @@ def handle_move():
 @app.route('/api/engine-move', methods=['POST'])
 def handle_engine_move():
     """Get the engine's move"""
+    global global_win_counter
     try:
         if not engine:
             # Try to reinitialize engine
@@ -424,6 +428,7 @@ def handle_engine_move():
                     if current_player == 'white':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
+                        global_win_counter += 1
                     else:
                         s1.sendall(b"lose\n")
                         s2.sendall(b"lose\n")
