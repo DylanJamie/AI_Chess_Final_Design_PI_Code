@@ -24,6 +24,8 @@ engine = None
 game_active = False
 current_player = 'white'
 
+
+
 # NNUE file paths (absolute paths)
 NNUE_BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'nnue'))
 CARLSEN_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'carlsen_halfkav2_hm.nnue')
@@ -50,7 +52,6 @@ s2.sendall(b"draw\n")
 
 # Global variable to count number of wins
 global_win_counter = 0;
-
 
 def initialize_engine():
 
@@ -126,7 +127,7 @@ def get_engine_move(game_speed=10):
                    Thinking time = 2.0 / game_speed seconds
     """
     global global_win_counter
-#    global wdl
+    global wdl
     if not engine:
         print("Engine not initialized")
         return None
@@ -296,6 +297,7 @@ def handle_move():
                     print(f"!!!!!!!!!!!! I AM {current_player} !!!!!!!!!!!!!!!")
                     if current_player == 'white':
                         s1.sendall(b"victory\n")
+                        print("RESULT IF WIN: ", board.result())
                         s2.sendall(b"win\n")
                         global_win_counter += 1
                     else:
@@ -436,6 +438,8 @@ def handle_engine_move():
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
                         global_win_counter += 1
+                        print("RESULT IF WIN: ", board.result())
+                        
                     else:
                         s1.sendall(b"lose\n")
                         s2.sendall(b"lose\n")
@@ -595,7 +599,15 @@ def game_control():
 @app.route('/api/set-bot-difficulty', methods=['POST'])
 def set_bot_difficulty():
     """Set bot difficulty level (ELO and skill) and optionally configure NNUE"""
+    global global_win_counter
+    global board
+    
+    #  Reset win back to zero
+    if board.result() == "*":
+        global_win_counter = 0;
 
+    
+    
     try:
         if not engine:
             return jsonify({
@@ -651,15 +663,8 @@ def set_bot_difficulty():
         engine.configure(config)
         
         # Reset the board to starting position when setting difficulty
-        global board
+    #    global board
         board = chess.Board()
-
-
-
-        
-        #global_win_counter = 0 # Reset win counter
-        
-
         
         nnue_status = f"with NNUE ({nnue_model})" if use_nnue else "standard evaluation"
         print(f"Bot difficulty set: ELO {elo}, Skill Level {skill}, {nnue_status}")
