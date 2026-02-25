@@ -182,14 +182,23 @@ def get_engine_move(game_speed=10):
         
         # Make the move
         board.push(move)        
-     
-        return {
-            'from': chess.square_name(move.from_square),
-            'to': chess.square_name(move.to_square),
-            'piece': piece,
-            'san': san_notation,
-            'wdl': wdl_stats
-        }
+
+        try:
+            return {
+                'from': chess.square_name(move.from_square),
+                'to': chess.square_name(move.to_square),
+                'piece': piece,
+                'san': san_notation,
+                'wdl': wdl_stats
+            }
+        except:
+            return {
+                'from': chess.square_name(move.from_square),
+                'to': chess.square_name(move.to_square),
+                'piece': piece,
+                'san': san_notation,
+                'wdl': None
+            }
 
     except chess.engine.EngineTerminatedError as e:
         print(f"ERROR: Engine terminated unexpectedly: {e}")

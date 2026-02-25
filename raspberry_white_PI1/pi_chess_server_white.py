@@ -22,7 +22,7 @@ app = Flask(__name__)
 board = chess.Board()
 engine = None
 game_active = False
-current_player = 'white'
+current_player = "white"
 
 # NNUE file paths (absolute paths)
 NNUE_BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'nnue'))
@@ -155,11 +155,13 @@ def get_engine_move(game_speed=10):
         move = result.move
         info = result.info
 
+
         # Extract the WDL Probabilites
         if 'wdl' in info:
             wdl = info['wdl'].white()
             total = wdl.wins + wdl.draws + wdl.losses
 
+            
             # Return the win loss and draw probabilities based on state of board
             if total > 0:
                 wdl_stats = {
@@ -182,15 +184,24 @@ def get_engine_move(game_speed=10):
         
         # Make the move
         board.push(move)        
-     
-        return {
-            'from': chess.square_name(move.from_square),
-            'to': chess.square_name(move.to_square),
-            'piece': piece,
-            'san': san_notation,
-            'wdl': wdl_stats
-        }
+        try:
+            return {
+                'from': chess.square_name(move.from_square),
+                'to': chess.square_name(move.to_square),
+                'piece': piece,
+                'san': san_notation,
+                'wdl': wdl_stats
+            }
+        except:
+            return {
+                'from': chess.square_name(move.from_square),
+                'to': chess.square_name(move.to_square),
+                'piece': piece,
+                'san': san_notation,
+                'wdl': None
+            }
 
+        
     except chess.engine.EngineTerminatedError as e:
         print(f"ERROR: Engine terminated unexpectedly: {e}")
         print("Attempting to reinitialize engine...")
@@ -288,7 +299,7 @@ def handle_move():
                     print(f"!!!!!!!!!!!! I AM {current_player} !!!!!!!!!!!!!!!")
                     if current_player == 'white':
                         s1.sendall(b"victory\n")
-                        print("RESULT IF WIN: ", board.result())
+                        
                         s2.sendall(b"win\n")
                         global_win_counter += 1
                     else:
@@ -297,7 +308,7 @@ def handle_move():
                         
                 elif result == '0-1':
                     winner = 'black'
-                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
+
                     if current_player == 'black':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
@@ -408,23 +419,23 @@ def handle_engine_move():
             if game_over:
                 print("======= NUMBA 3 ========")
                 result = board.result()
+                print("THIS IS THE RESULT:  ", result, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                print(current_player)
+                
                 if result == '1-0':
                     winner = 'white'
-                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
-                    print(f"!!!!!!!!!!!! I AM {current_player} !!!!!!!!!!!!!!!")
+                    
                     if current_player == 'white':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
-                        global_win_counter += 1
-                        print("RESULT IF WIN: ", board.result())
-                        
+                        global_win_counter += 1                        
                     else:
                         s1.sendall(b"lose\n")
                         s2.sendall(b"lose\n")
                         
                 elif result == '0-1':
                     winner = 'black'
-                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
+                 
                     if current_player == 'black':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
