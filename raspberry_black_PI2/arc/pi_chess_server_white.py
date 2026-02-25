@@ -13,7 +13,8 @@ from flask import Flask, request, jsonify
 import json
 import time
 import os
-import socket
+# from LED_Program import RingLed
+# from lcd_animation import LCD
 
 # Call Flask
 app = Flask(__name__)
@@ -23,8 +24,6 @@ board = chess.Board()
 engine = None
 game_active = False
 current_player = 'white'
-
-
 
 # NNUE file paths (absolute paths)
 NNUE_BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'nnue'))
@@ -37,25 +36,11 @@ KRUSH_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'krush.nnue')
 POLGAR_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'polgar.nnue')
 ANAND_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'anand.nnue')
 
-# Create Socket Port
-HOST = "127.0.0.1"
-PORT1 = 1234
-PORT2 = 4321
-s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-s1.connect((HOST,PORT1)) ############### Code will crash if LCD code is not running!
-s2.connect((HOST,PORT2))  ############### Code will crash if LED code is not running!
-
-# Send to LED and lcd the Selection and draw screen while you wait for user to select overlay options
-s1.sendall(b"selection\n")
-s2.sendall(b"draw\n")
-
-# Global variable to count number of wins
-global_win_counter = 0;
+# Create Class objects
+# display_lcd = LCD()
+# display_LED = RingLed()
 
 def initialize_engine():
-
-    
     """Initialize the Stockfish chess engine"""
     global engine
     try:
@@ -76,7 +61,6 @@ def get_board_state():
     board_state = {}
     for square in chess.SQUARES:
         piece = board.piece_at(square)
-        # get the whole board where all the pieces are on the board
         if piece:
             square_name = chess.square_name(square)
             piece_symbol = piece.symbol()
@@ -84,11 +68,8 @@ def get_board_state():
     return board_state
 
 def is_valid_move(from_square, to_square, piece_code):
-
-
     """Validate if a move is legal"""
     try:
-        # Validate the moves the engine or player is trying to make
         print(f"Validating move: {from_square} to {to_square}")
         
         from_sq = chess.parse_square(from_square)
@@ -102,11 +83,8 @@ def is_valid_move(from_square, to_square, piece_code):
         return False
 
 def make_move(from_square, to_square):
-    print("!!!!!!!!!!!!!!!!MAKE_MOVE!!!!!!!!!!!!!")
-
     """Make a move on the board"""
     try:
-        # Actually make the Move
         from_sq = chess.parse_square(from_square)
         to_sq = chess.parse_square(to_square)
         move = chess.Move(from_sq, to_sq)
@@ -126,8 +104,6 @@ def get_engine_move(game_speed=10):
         game_speed: Speed multiplier (1-20). Higher = faster. Default 10.
                    Thinking time = 2.0 / game_speed seconds
     """
-    global global_win_counter
-    global wdl
     if not engine:
         print("Engine not initialized")
         return None
@@ -137,16 +113,11 @@ def get_engine_move(game_speed=10):
         return None
     
     try:
-        # Start thinking animaiton on LED and lcd screen
-        #hardware.start_animation("thinking")        
-        s1.sendall(f"score\n{global_win_counter}\n".encode())
-        s2.sendall(b"thinking\n")
         # print(f"Getting engine move. Board FEN: {board.fen()}")
         legal_moves_list = list(board.legal_moves)
         # print(f"Legal moves count: {len(legal_moves_list)}")
         if legal_moves_list:
             print(f"Sample legal moves: {[board.san(move) for move in legal_moves_list[:10]]}")
-
         
         # Calculate thinking time based on game speed
         # At speed 1: 2.0 seconds (slow)
@@ -159,20 +130,29 @@ def get_engine_move(game_speed=10):
         
         # Use a timeout limit to prevent hanging (max 30 seconds total)
         time_limit = min(thinking_time * 2, 30.0)
+
+        # # Thinking LED/LCD
+        # with open("LED_mode.txt", 'w') as f:
+        #     f.write("thinking")
+        # display_LED.thinking()
+        # display_lcd.show_screen("score", 10)
         
         result = engine.play(board, chess.engine.Limit(time=thinking_time), info=chess.engine.Info.ALL)
         move = result.move
         info = result.info
 
+        # Initialize wdl_stats to None
+        # wdl_stats = None        
+
         # Extract the WDL Probabilites
         if 'wdl' in info:
             wdl = info['wdl'].white()
+            # FIX: changed 'wdl.win' to 'wdl.wins'
             total = wdl.wins + wdl.draws + wdl.losses
-
-            # Return the win loss and draw probabilities based on state of board
+            
             if total > 0:
                 wdl_stats = {
-                    'win': round((wdl.wins / total) * 100, 1), 
+                    'win': round((wdl.wins / total) * 100, 1), # FIX: wdl.wins
                     'draw': round((wdl.draws / total) * 100, 1),
                     'loss': round((wdl.losses / total) * 100, 1)
                 }
@@ -190,8 +170,11 @@ def get_engine_move(game_speed=10):
         san_notation = board.san(move)
         
         # Make the move
-        board.push(move)        
-     
+        board.push(move)
+        global current_player
+        current_player = 'black' if current_player == 'white' else 'white'
+        print(f"Engine move applied: {move} ({san_notation})")
+        
         return {
             'from': chess.square_name(move.from_square),
             'to': chess.square_name(move.to_square),
@@ -199,7 +182,6 @@ def get_engine_move(game_speed=10):
             'san': san_notation,
             'wdl': wdl_stats
         }
-
     except chess.engine.EngineTerminatedError as e:
         print(f"ERROR: Engine terminated unexpectedly: {e}")
         print("Attempting to reinitialize engine...")
@@ -227,7 +209,6 @@ def status():
         'board_fen': board.fen()
     })
 
-# Debug and retrieve data from the server
 @app.route('/api/debug', methods=['GET'])
 def debug_info():
     """Debug endpoint to see board state and legal moves"""
@@ -245,11 +226,9 @@ def debug_info():
         'turn': 'white' if board.turn else 'black'
     })
 
-# This will send the move request to the server
 @app.route('/api/move', methods=['POST'])
 def handle_move():
     """Handle a move (validate and apply it to this Pi's board)"""
-    global global_win_counter
     try:
         data = request.get_json()
         if not data:
@@ -289,34 +268,28 @@ def handle_move():
             winner = None
             
             if game_over:
-                print("======= NUMBA 1 ========")
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
-                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
-                    print(f"!!!!!!!!!!!! I AM {current_player} !!!!!!!!!!!!!!!")
-                    if current_player == 'white':
-                        s1.sendall(b"victory\n")
-                        print("RESULT IF WIN: ", board.result())
-                        s2.sendall(b"win\n")
-                        global_win_counter += 1
-                    else:
-                        s1.sendall(b"lose\n")
-                        s2.sendall(b"lose\n")
-                        
+                    # with open("LED_mode.txt", 'w') as f:
+                    #     f.write("win")
+                    # time.sleep(5)
+                    # display_LED.game_win()
+                    # display_LCD.show_victory()
                 elif result == '0-1':
-                    winner = 'black'
-                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
-                    if current_player == 'black':
-                        s1.sendall(b"victory\n")
-                        s2.sendall(b"win\n")
-                    else:
-                        s1.sendall(b"lose\n")
-                        s2.sendall(b"lose\n")
-                    
+                    winner = 'black' 
+                    # with open("LED_mode.txt", 'w') as f:
+                    #     f.write("lose")
+                    # time.sleep(5)
+                    # display_LED.game_lose()
+                    # display_LCD.show_lose()
                 else:
                     winner = 'draw'
-                    
+                    # with open("LED_mode.txt", 'w') as f:
+                    #     f.write("draw")
+                    # display_LED.game_draw()
+                    # display_LCD.show_draw()
+            
             return jsonify({
                 'status': 'success',
                 'move_accepted': True,
@@ -344,7 +317,6 @@ def handle_move():
 @app.route('/api/engine-move', methods=['POST'])
 def handle_engine_move():
     """Get the engine's move"""
-    global global_win_counter
     try:
         if not engine:
             # Try to reinitialize engine
@@ -360,18 +332,9 @@ def handle_engine_move():
         # If the game is already over (checkmate / stalemate / draw), do NOT error.
         # Return a clean success response so the GUI can end/restart gracefully.
         if board.is_game_over():
-            print("======= NUMBA 2 Chat IFK if this ever happens  ========")
             result = board.result()
             if result == '1-0':
                 winner = 'white'
-                # if current_player == 'white':
-                #     s1.sendall(b"victory\n")
-                #     s2.sendall(b"win\n")
-                # else:
-                #     s1.sendall(b"lose\n")
-                #     s2.sendall(b"lose\n")
-
-                # hardware.start_animation("win")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("win")
                 # time.sleep(5)
@@ -379,14 +342,6 @@ def handle_engine_move():
                 # display_LCD.show_screen("victory")
             elif result == '0-1':
                 winner = 'black'
-                # if current_player == 'black':
-                #     s1.sendall(b"victory\n")
-                #     s2.sendall(b"win\n")
-                # else:
-                #     s1.sendall(b"lose\n")
-                #     s2.sendall(b"lose\n")
-
-                # hardware.start_animation("lose")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("lose")
                 # time.sleep(5)
@@ -394,8 +349,6 @@ def handle_engine_move():
                 # display_LCD.show_screen("lose")
             else:
                 winner = 'draw'
-                #s.sendall(b"draw")
-                # hardware.start_animation("draw")
                 # with open("LED_mode.txt", 'w') as f:
                 #     f.write("draw")
                 # display_LED.game_draw()
@@ -428,35 +381,19 @@ def handle_engine_move():
             winner = None
             
             if game_over:
-                print("======= NUMBA 3 ========")
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
-                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
-                    print(f"!!!!!!!!!!!! I AM {current_player} !!!!!!!!!!!!!!!")
-                    if current_player == 'white':
-                        s1.sendall(b"victory\n")
-                        s2.sendall(b"win\n")
-                        global_win_counter += 1
-                        print("RESULT IF WIN: ", board.result())
-                        
-                    else:
-                        s1.sendall(b"lose\n")
-                        s2.sendall(b"lose\n")
-                        
+                    # with open("LED_mode.txt", 'w') as f:
+                    #     f.write("win")
+#                        time.sleep(5) 
                 elif result == '0-1':
                     winner = 'black'
-                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
-                    if current_player == 'black':
-                        s1.sendall(b"victory\n")
-                        s2.sendall(b"win\n")
-                    else:
-                        s1.sendall(b"lose\n")
-                        s2.sendall(b"lose\n")
-
+                    # with open("LED_mode.txt", 'w') as f:
+                    #     f.write("lose")
+                    #     time.sleep(5)
                 else:
                     winner = 'draw'
-                    #s.sendall(b"draw")
             
             return jsonify({
                 'status': 'success',
@@ -505,25 +442,18 @@ def get_board_state_endpoint():
         winner = None
         
         if game_over:
-            print("======= NUMA 4 Chat IDK if this happens ever ========")
             result = board.result()
             if result == '1-0':
                 winner = 'white'
-                # if current_player == 'white':
-                #     s1.sendall(b"victory\n")
-                #     s2.sendall(b"win\n")
-                # else:
-                #     s1.sendall(b"lose\n")
-                #     s2.sendall(b"lose\n")
-
+                # with open("LED_mode.txt", 'w') as f:
+                #     f.write("win")
+                # time.sleep(5)
+           
             elif result == '0-1':
                 winner = 'black'
-                # if current_player == 'black':
-                #     s1.sendall(b"victory\n")
-                #     s2.sendall(b"win\n")
-                # else:
-                #     s1.sendall(b"lose\n")
-                #     s2.sendall(b"lose\n")
+                # with open("LED_mode.txt", 'w') as f:
+                #     f.write("lose")
+                # time.sleep(5)
            
             else:
                 winner = 'draw'
@@ -556,14 +486,6 @@ def game_control():
             global board, game_active, current_player
             board = chess.Board()
             current_player = 'white'
-
-            # Force LCD/LED Reset
-            # hardware.current_animation = None
-            # hardware.stop_all()
-
-            # Start thinking animation
-            hardware.start_animation("thinking")
-            
             return jsonify({
                 'status': 'success',
                 'message': 'Game reset to starting position',
@@ -599,22 +521,12 @@ def game_control():
 @app.route('/api/set-bot-difficulty', methods=['POST'])
 def set_bot_difficulty():
     """Set bot difficulty level (ELO and skill) and optionally configure NNUE"""
-    global global_win_counter
-    global board
-    
-    #  Reset win back to zero
-    if board.result() == "*":
-        global_win_counter = 0;
-
-    
-    
     try:
         if not engine:
             return jsonify({
                 'status': 'error',
                 'message': 'Engine not initialized'
             }), 500
-
         
         data = request.get_json()
         elo = data.get('elo', 1350)
@@ -663,7 +575,7 @@ def set_bot_difficulty():
         engine.configure(config)
         
         # Reset the board to starting position when setting difficulty
-    #    global board
+        global board
         board = chess.Board()
         
         nnue_status = f"with NNUE ({nnue_model})" if use_nnue else "standard evaluation"
@@ -686,14 +598,14 @@ def set_bot_difficulty():
             'status': 'error',
             'message': f'Failed to set bot difficulty: {str(e)}'
         }), 500
-    
+
 def cleanup():
     """Cleanup resources"""
     global engine
     if engine:
         engine.quit()
         print("Chess engine closed")
-    
+
 if __name__ == '__main__':
     print("="*60)
     print("Starting Raspberry Pi Chess Server (Simplified)")
