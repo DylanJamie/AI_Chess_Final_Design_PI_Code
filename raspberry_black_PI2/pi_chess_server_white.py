@@ -293,6 +293,7 @@ def handle_move():
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
+                    request.post(f"http://192.168.10.3:5002/api/trigger-win")
                     print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
                     print(f"!!!!!!!!!!!! I AM {current_player} !!!!!!!!!!!!!!!")
                     if current_player == 'white':
@@ -306,6 +307,7 @@ def handle_move():
                         
                 elif result == '0-1':
                     winner = 'black'
+                    request.post(f"http://192.168.10.3:5002/api/trigger-loss")
                     print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
                     if current_player == 'black':
                         s1.sendall(b"victory\n")
@@ -316,6 +318,7 @@ def handle_move():
                         s2.sendall(b"lose\n")
                     
                 else:
+                    request.post(f"http://192.168.10.3:5002/api/trigger-draw")
                     winner = 'draw'
                     s1.sendall(b"draw\n")
                     s2.sendall(b"draw\n")
@@ -367,26 +370,31 @@ def handle_engine_move():
             result = board.result()
             if result == '1-0':
                 winner = 'white'
-                # if current_player == 'white':
-                #     s1.sendall(b"victory\n")
-                #     s2.sendall(b"win\n")
-                # else:
-                #     s1.sendall(b"lose\n")
-                #     s2.sendall(b"lose\n")
+                request.post(f"http://192.168.10.3:5002/api/trigger-win")
+                if current_player == 'white':
+                    s1.sendall(b"victory\n")
+                    s2.sendall(b"win\n")
+                    global_win_counter += 1
+                else:
+                    s1.sendall(b"lose\n")
+                    s2.sendall(b"lose\n")
 
             elif result == '0-1':
                 winner = 'black'
-                # if current_player == 'black':
-                #     s1.sendall(b"victory\n")
-                #     s2.sendall(b"win\n")
-                # else:
-                #     s1.sendall(b"lose\n")
-                #     s2.sendall(b"lose\n")
+                request.post(f"http://192.168.10.3:5002/api/trigger-loss")
+                if current_player == 'black':
+                    s1.sendall(b"victory\n")
+                    s2.sendall(b"win\n")
+                    global_win_counter += 1
+                else:
+                    s1.sendall(b"lose\n")
+                    s2.sendall(b"lose\n")
 
             else:
+                request.post(f"http://192.168.10.3:5002/api/trigger-draw")
                 winner = 'draw'
-                # s1.sendall(b"draw\n")
-                # s2.sendall(b"draw\n")
+                s1.sendall(b"draw\n")
+                s2.sendall(b"draw\n")
 
                 
             return jsonify({
@@ -420,20 +428,21 @@ def handle_engine_move():
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
+                    request.post(f"http://192.168.10.3:5002/api/trigger-win")
                     print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
                     print(f"!!!!!!!!!!!! I AM {current_player} !!!!!!!!!!!!!!!")
                     if current_player == 'white':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
                         global_win_counter += 1
-                        print("RESULT IF WIN: ", board.result())
-                        
+                        print("RESULT IF WIN: ", board.result())                      
                     else:
                         s1.sendall(b"lose\n")
                         s2.sendall(b"lose\n")
                         
                 elif result == '0-1':
                     winner = 'black'
+                    request.post(f"http://192.168.10.3:5002/api/trigger-loss")
                     print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
                     if current_player == 'black':
                         s1.sendall(b"victory\n")
@@ -445,6 +454,7 @@ def handle_engine_move():
 
                 else:
                     winner = 'draw'
+                    request.post(f"http://192.168.10.3:5002/api/trigger-draw")
                     s1.sendall(b"draw\n")
                     s2.sendall(b"draw\n")
                     
@@ -675,7 +685,9 @@ def cleanup():
     if engine:
         engine.quit()
         print("Chess engine closed")
-    
+
+
+        
 if __name__ == '__main__':
     print("="*60)
     print("Starting Raspberry Pi Chess Server (Simplified)")
