@@ -22,7 +22,7 @@ app = Flask(__name__)
 board = chess.Board()
 engine = None
 game_active = False
-current_player = 'white'
+current_player = "black"
 
 # NNUE file paths (absolute paths)
 NNUE_BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'nnue'))
