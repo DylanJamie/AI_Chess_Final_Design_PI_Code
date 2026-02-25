@@ -148,7 +148,7 @@ class LCD:
 
     def show_score(self, score):
         chess_copy = self.chessback.copy()
-        self.draw_centered_text(chess_copy,f"Win: {score}",BOLD,FONTSIZE+12,fill="white")
+        self.draw_centered_text(chess_copy,f"Wins: {score}",BOLD,FONTSIZE+12,fill="white")
         self.disp.image(chess_copy)
 
     def show_prop(self, prop):
@@ -178,8 +178,6 @@ class LCD:
                 time.sleep(0.5)
 
             case "score":
-                #if value is None:
-                 #   value = 0
                 self.show_score(value)
 
             case "prob":
