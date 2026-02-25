@@ -310,6 +310,7 @@ def handle_move():
                     if current_player == 'black':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
+                        global_win_counter += 1
                     else:
                         s1.sendall(b"lose\n")
                         s2.sendall(b"lose\n")
@@ -437,6 +438,7 @@ def handle_engine_move():
                     if current_player == 'black':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
+                        global_win_counter += 1
                     else:
                         s1.sendall(b"lose\n")
                         s2.sendall(b"lose\n")
@@ -545,7 +547,7 @@ def game_control():
         if command == 'reset':
             global board, game_active, current_player
             board = chess.Board()
-            current_player = 'white'
+            current_player = 'black'
             
             return jsonify({
                 'status': 'success',
@@ -585,7 +587,8 @@ def set_bot_difficulty():
     global global_win_counter
     global board
     
-    #  Reset win back to zero
+    # Reset win back to zero
+    print(f"!!!!!!!!!!!!!!GAMEEEE RESULT {board.result()} !!!!!!!!!!!!!")
     if board.result() == "*":
         global_win_counter = 0;
         

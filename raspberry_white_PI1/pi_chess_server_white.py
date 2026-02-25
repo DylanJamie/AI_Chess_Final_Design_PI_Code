@@ -293,10 +293,9 @@ def handle_move():
             if game_over:
                 print("======= NUMBA 1 ========")
                 result = board.result()
+                print("THIS IS THE BOARD RESULT: ", result, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 if result == '1-0':
                     winner = 'white'
-                    print(f"!!!!!!!!!!!! WINNER {winner} !!!!!!!!!!!!!!!")
-                    print(f"!!!!!!!!!!!! I AM {current_player} !!!!!!!!!!!!!!!")
                     if current_player == 'white':
                         s1.sendall(b"victory\n")
                         
@@ -308,10 +307,10 @@ def handle_move():
                         
                 elif result == '0-1':
                     winner = 'black'
-
                     if current_player == 'black':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
+                        global_win_counter += 1
                     else:
                         s1.sendall(b"lose\n")
                         s2.sendall(b"lose\n")
@@ -424,7 +423,6 @@ def handle_engine_move():
                 
                 if result == '1-0':
                     winner = 'white'
-                    
                     if current_player == 'white':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
@@ -432,13 +430,12 @@ def handle_engine_move():
                     else:
                         s1.sendall(b"lose\n")
                         s2.sendall(b"lose\n")
-                        
                 elif result == '0-1':
                     winner = 'black'
-                 
                     if current_player == 'black':
                         s1.sendall(b"victory\n")
                         s2.sendall(b"win\n")
+                        global_win_counter += 1
                     else:
                         s1.sendall(b"lose\n")
                         s2.sendall(b"lose\n")
