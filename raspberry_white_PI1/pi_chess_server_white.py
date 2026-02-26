@@ -108,10 +108,11 @@ def make_move(from_square, to_square):
             board.push(move)
             return True
         return False
+    
     except Exception as e:
         print(f"Error making move: {e}")
         return False
-
+    
 def get_engine_move(game_speed=10):
     """Get the engine's move
     Args:
@@ -183,7 +184,7 @@ def get_engine_move(game_speed=10):
         san_notation = board.san(move)
         
         # Make the move
-        board.push(move)        
+        board.push(move)                    
         try:
             return {
                 'from': chess.square_name(move.from_square),
@@ -259,7 +260,10 @@ def handle_move():
                 'status': 'error',
                 'message': 'No JSON data provided'
             }), 400
-            
+
+        s1.sendall(f"score\n{global_win_counter}\n".encode())
+        s2.sendall(b"thinking\n")
+        
         from_square = data.get('from')
         to_square = data.get('to')
         piece = data.get('piece')
@@ -664,6 +668,27 @@ def set_bot_difficulty():
             'status': 'error',
             'message': f'Failed to set bot difficulty: {str(e)}'
         }), 500
+
+# PLay the winning animaiton
+@app.route('/api/trigger-win', methods=['POST'])
+def trigger_win():
+    s1.sendall(b"victory\n")
+    s2.sendall(b"win\n")
+    return jsonify({"status": "success", "message": "Win animation triggered"}), 200
+
+# PLay the Draw animation
+@app.route('/api/trigger-draw', methods=['POST'])
+def trigger_draw():
+    s1.sendall(b"draw\n")
+    s2.sendall(b"draw\n")
+    return jsonify({"status": "success", "message": "Draw animation triggered"}), 200
+
+# Play the Loss animation
+@app.route('/api/trigger-loss', methods=['POST'])
+def trigger_loss():
+    s1.sendall(b"lose\n")
+    s2.sendall(b"lose\n")
+    return jsonify({"status": "success", "message": "lose animation triggered"}), 200
     
 def cleanup():
     """Cleanup resources"""
