@@ -192,9 +192,13 @@ class LCD:
                 self.turn_off()
 
             case _:
-                self.show_draw()
+                #self.show_draw()
+                self.disp.image(self.lose_left_rot)
+                time.sleep(0.5)
+                self.disp.image(self.lose_right_rot)
+                time.sleep(0.5)
 
-
+                
 ## Header ##
 myLCD = LCD()  # create LCD object
 myLCD.turn_off()
