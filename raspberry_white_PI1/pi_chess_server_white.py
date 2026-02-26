@@ -686,9 +686,9 @@ def trigger_draw():
 # Play the Loss animation
 @app.route('/api/trigger-loss', methods=['POST'])
 def trigger_loss():
-    s1.sendall(b"loss\n")
-    s2.sendall(b"loss\n")
-    return jsonify({"status": "success", "message": "loss animation triggered"}), 200
+    s1.sendall(b"lose\n")
+    s2.sendall(b"lose\n")
+    return jsonify({"status": "success", "message": "lose animation triggered"}), 200
     
 def cleanup():
     """Cleanup resources"""
