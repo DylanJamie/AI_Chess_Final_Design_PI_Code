@@ -295,77 +295,68 @@ def handle_move():
                 'status': 'error',
                 'message': 'Missing from or to square'
             }), 400
+
+        # --- STEP 1: Attempt the Requested Move ---
+        move_applied = False
+        if is_valid_move(from_square, to_square, piece):
+            if make_move(from_square, to_square, piece):
+                move_applied = True
         
-        # Validate the move
-        if not is_valid_move(from_square, to_square, piece):
-            print(f"Move validation failed: {from_square} to {to_square}")
-            print(f"Current legal moves: {[board.san(move) for move in list(board.legal_moves)[:10]]}")
-            return jsonify({
-                'status': 'error',
-                'message': 'Invalid move',
-                'move_accepted': False
-            }), 400
-        
-        # Make the move
-        if make_move(from_square, to_square, piece):
-            # Check if game is over
-            game_over = board.is_game_over()
-            winner = None
-            
-            if game_over:
-                print("======= NUMBA 1 ========")
-                result = board.result()
-                print("THIS IS THE BOARD RESULT: ", result, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                if result == '1-0':
-                    winner = 'white'
-                    if current_player == 'white':
-                        s1.sendall(b"victory\n")
-                        
-                        s2.sendall(b"win\n")
-                        global_win_counter += 1
-                    else:
-                        s1.sendall(b"lose\n")
-                        s2.sendall(b"lose\n")
-                        
-                elif result == '0-1':
-                    winner = 'black'
-                    if current_player == 'black':
-                        s1.sendall(b"victory\n")
-                        s2.sendall(b"win\n")
-                        global_win_counter += 1
-                    else:
-                        s1.sendall(b"lose\n")
-                        s2.sendall(b"lose\n")
-                    
+        # --- STEP 2: Fallback Logic ---
+        engine_fallback_move = None
+        if not move_applied:
+            print(f"Move {from_square}->{to_square} failed validation. Triggering fallback...")
+            # Automatically pick the best move instead of returning error
+            engine_fallback_move = get_engine_move(game_speed=10)
+            if not engine_fallback_move:
+                 return jsonify({'status': 'error', 'message': 'Move failed and engine fallback failed'}), 400
+            move_applied = True
+
+        # --- STEP 3: Handle Game Over Logic ---
+        game_over = board.is_game_over()
+        winner = None
+        if game_over:
+            print("======= GAME OVER ========")
+            result = board.result()
+            if result == '1-0':
+                winner = 'white'
+                if current_player == 'white':
+                    s1.sendall(b"victory\n")
+                    s2.sendall(b"win\n")
+                    global_win_counter += 1
                 else:
-                    winner = 'draw'
-                    s1.sendall(b"draw\n")
-                    s2.sendall(b"draw\n")
-                    
-            return jsonify({
-                'status': 'success',
-                'move_accepted': True,
-                'board_state': get_board_state(),
-                'game_over': game_over,
-                'winner': winner,
-                'current_player': 'black' if current_player == 'white' else 'white'
-            })
-        else:
-            return jsonify({
-                'status': 'error',
-                'message': 'Failed to make move',
-                'move_accepted': False
-            }), 400
+                    s1.sendall(b"lose\n")
+                    s2.sendall(b"lose\n")
+            elif result == '0-1':
+                winner = 'black'
+                if current_player == 'black':
+                    s1.sendall(b"victory\n")
+                    s2.sendall(b"win\n")
+                    global_win_counter += 1
+                else:
+                    s1.sendall(b"lose\n")
+                    s2.sendall(b"lose\n")
+            else:
+                winner = 'draw'
+                s1.sendall(b"draw\n")
+                s2.sendall(b"draw\n")
+        
+        # Return success with the engine_move if fallback was used
+        return jsonify({
+            'status': 'success',
+            'move_accepted': True,
+            'fallback_triggered': engine_fallback_move is not None,
+            'engine_move': engine_fallback_move, # GUI must check this to update its board if fallback happened
+            'board_state': get_board_state(),
+            'game_over': game_over,
+            'winner': winner,
+            'current_player': 'black' if current_player == 'white' else 'white'
+        })
             
     except Exception as e:
         print(f"Exception in handle_move: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            'status': 'error',
-            'message': f'Server error: {str(e)}'
-        }), 500
-
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+        
 @app.route('/api/engine-move', methods=['POST'])
 def handle_engine_move():
     """Get the engine's move"""
