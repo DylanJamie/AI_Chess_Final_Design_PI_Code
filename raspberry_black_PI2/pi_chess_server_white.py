@@ -336,6 +336,7 @@ def handle_move():
                 'board_state': get_board_state(),
                 'game_over': game_over,
                 'winner': winner,
+                'is_check': board.is_check(),
                 'current_player': 'black' if current_player == 'white' else 'white'
             })
         else:
@@ -410,7 +411,9 @@ def handle_engine_move():
                 'board_state': get_board_state(),
                 'game_over': True,
                 'winner': winner,
-                'message': 'Game is over'
+                'message': 'Game is over',
+                'is_check': board.is_check(),
+                'current_player': current_player
             }), 200
         
         # Get game_speed from request (default to 10 if not provided)
@@ -470,7 +473,9 @@ def handle_engine_move():
                 'engine_move': engine_move,
                 'board_state': get_board_state(),
                 'game_over': game_over,
-                'winner': winner
+                'winner': winner,
+                'is_check': board.is_check(),
+                'current_player': 'black' if current_player == 'white' else 'white'
             })
         else:
             # If engine move failed, try to check if engine is still alive
